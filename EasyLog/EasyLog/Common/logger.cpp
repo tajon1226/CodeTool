@@ -38,8 +38,7 @@ namespace LOGGER
 			time(&curTime);  
 			tm tm1;  
 			localtime_s(&tm1, &curTime);  
-			//日志的名称如：201601012130.log  
-			m_strLogName = FormatString("%04d%02d%02d_%02d%02d%02d.log", tm1.tm_year + 1900, tm1.tm_mon + 1, tm1.tm_mday, tm1.tm_hour, tm1.tm_min, tm1.tm_sec);  
+			m_strLogName = FormatString("%04d%02d%02d.log", tm1.tm_year + 1900, tm1.tm_mon + 1, tm1.tm_mday);   //日志的名称如：20160910.log
 		}  
 		m_strLogFilePath = m_strLogPath.append(m_strLogName);  
 
@@ -49,6 +48,7 @@ namespace LOGGER
 		InitializeCriticalSection(&m_cs);  
 	}  
 
+	//-------------------------------------------------------------------------------------------------------------------------
 
 	//析构函数  
 	CLogger::~CLogger()  
@@ -63,14 +63,18 @@ namespace LOGGER
 		}  
 	}  
 
+	//-------------------------------------------------------------------------------------------------------------------------
+
 	//文件全路径得到文件名  
 	const char *CLogger::path_file(const char *path, char splitter)  
 	{  
 		return strrchr(path, splitter) ? strrchr(path, splitter) + 1 : path;  
 	}  
 
+	//-------------------------------------------------------------------------------------------------------------------------
+
 	//写严重错误信息  
-	void CLogger::TraceFatal(const char *lpcszFormat, ...)  
+	void CLogger::Fatal(const char *lpcszFormat, ...)  
 	{  
 		//判断当前的写日志级别  
 		if (EnumLogLevel::LogLevel_Fatal > m_nLogLevel)  
@@ -93,15 +97,17 @@ namespace LOGGER
 		{  
 			return;  
 		}  
-		string strLog = strFatalPrefix;  
-		strLog.append(GetTime()).append(strResult);  
+		string strLog = GetTime(); 
+		strLog.append(strFatalPrefix).append(strResult);  
 
 		//写日志文件  
 		Trace(strLog);  
 	}  
 
+	//-------------------------------------------------------------------------------------------------------------------------
+
 	//写错误信息  
-	void CLogger::TraceError(const char *lpcszFormat, ...)  
+	void CLogger::Error(const char *lpcszFormat, ...)  
 	{  
 		//判断当前的写日志级别  
 		if (EnumLogLevel::LogLevel_Error > m_nLogLevel)  
@@ -124,15 +130,17 @@ namespace LOGGER
 		{  
 			return;  
 		}  
-		string strLog = strErrorPrefix;  
-		strLog.append(GetTime()).append(strResult);  
+		string strLog = GetTime();  
+		strLog.append(strErrorPrefix).append(strResult);  
 
 		//写日志文件  
 		Trace(strLog);  
 	}  
 
+	//-------------------------------------------------------------------------------------------------------------------------
+
 	//写警告信息  
-	void CLogger::TraceWarning(const char *lpcszFormat, ...)  
+	void CLogger::Warn(const char *lpcszFormat, ...)  
 	{  
 		//判断当前的写日志级别  
 		if (EnumLogLevel::LogLevel_Warning > m_nLogLevel)  
@@ -155,16 +163,17 @@ namespace LOGGER
 		{  
 			return;  
 		}  
-		string strLog = strWarningPrefix;  
-		strLog.append(GetTime()).append(strResult);  
+		string strLog = GetTime();  
+		strLog.append(strWarningPrefix).append(strResult);  
 
 		//写日志文件  
 		Trace(strLog);  
 	}  
 
+	//-------------------------------------------------------------------------------------------------------------------------
 
 	//写一般信息  
-	void CLogger::TraceInfo(const char *lpcszFormat, ...)  
+	void CLogger::Info(const char *lpcszFormat, ...)  
 	{  
 		//判断当前的写日志级别  
 		if (EnumLogLevel::LogLevel_Info > m_nLogLevel)  
@@ -187,12 +196,14 @@ namespace LOGGER
 		{  
 			return;  
 		}  
-		string strLog = strInfoPrefix;  
-		strLog.append(GetTime()).append(strResult);  
+		string strLog = GetTime();  
+		strLog.append(strInfoPrefix).append(strResult);  
 
 		//写日志文件  
 		Trace(strLog);  
 	}  
+
+	//-------------------------------------------------------------------------------------------------------------------------
 
 	//获取系统当前时间  
 	string CLogger::GetTime()  
@@ -202,16 +213,20 @@ namespace LOGGER
 		tm tm1;  
 		localtime_s(&tm1, &curTime);  
 		//2016-01-01 21:30:00  
-		string strTime = FormatString("%04d-%02d-%02d %02d:%02d:%02d ", tm1.tm_year + 1900, tm1.tm_mon + 1, tm1.tm_mday, tm1.tm_hour, tm1.tm_min, tm1.tm_sec);  
+		string strTime = FormatString("%02d-%02d-%02d %02d:%02d:%02d ", (tm1.tm_year + 1900)%100, tm1.tm_mon + 1, tm1.tm_mday, tm1.tm_hour, tm1.tm_min, tm1.tm_sec);  
 
 		return strTime;  
 	}  
+
+	//-------------------------------------------------------------------------------------------------------------------------
 
 	//改变写日志级别  
 	void CLogger::ChangeLogLevel(EnumLogLevel nLevel)  
 	{  
 		m_nLogLevel = nLevel;  
 	}  
+
+	//-------------------------------------------------------------------------------------------------------------------------
 
 	//写文件操作  
 	void CLogger::Trace(const string &strLog)  
@@ -242,6 +257,8 @@ namespace LOGGER
 		}  
 	}  
 
+	//-------------------------------------------------------------------------------------------------------------------------
+
 	string CLogger::GetAppPathA()  
 	{  
 		char szFilePath[MAX_PATH] = { 0 }, szDrive[MAX_PATH] = { 0 }, szDir[MAX_PATH] = { 0 }, szFileName[MAX_PATH] = { 0 }, szExt[MAX_PATH] = { 0 };  
@@ -252,6 +269,8 @@ namespace LOGGER
 		str.append(szDir);  
 		return str;  
 	}  
+
+	//-------------------------------------------------------------------------------------------------------------------------
 
 	string CLogger::FormatString(const char *lpcszFormat, ...)  
 	{  
@@ -270,5 +289,9 @@ namespace LOGGER
 			va_end(marker); //重置变量参数  
 		}  
 		return strResult;  
-	}  
-}  
+	} 
+
+	//-------------------------------------------------------------------------------------------------------------------------
+
+	
+}//end of namespace  LOGGER

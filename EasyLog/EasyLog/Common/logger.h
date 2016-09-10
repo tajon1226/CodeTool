@@ -14,27 +14,27 @@ CLogger logger(LogLevel_Info,CLogger::GetAppPathA().append("log\\"));
  
 void main() 
 { 
-logger.TraceFatal("TraceFatal %d", 1); 
-logger.TraceError("TraceError %s", "sun"); 
-logger.TraceWarning("TraceWarning"); 
-logger.TraceInfo("TraceInfo"); 
+logger.Fatal("TraceFatal %d", 1); 
+logger.Error("TraceError %s", "sun"); 
+logger.Warn("TraceWarning"); 
+logger.Info("TraceInfo"); 
  
 logger.ChangeLogLevel(LOGGER::LogLevel_Error); 
  
-logger.TraceFatal("TraceFatal %d", 2); 
-logger.TraceError("TraceError %s", "sun2"); 
-logger.TraceWarning("TraceWarning"); 
-logger.TraceInfo("TraceInfo"); 
+logger.Fatal("TraceFatal %d", 2); 
+logger.Error("TraceError %s", "sun2"); 
+logger.Warn("TraceWarning"); 
+logger.Info("TraceInfo"); 
 } 
  
  
 执行结果：20160126_101329.log文件内容如下 
-Fatal   2016-01-26 10:13:29 TraceFatal 1 
-Error   2016-01-26 10:13:29 TraceError sun 
-Warning 2016-01-26 10:13:29 TraceWarning 
-Info    2016-01-26 10:13:29 TraceInfo 
-Fatal   2016-01-26 10:13:29 TraceFatal 2 
-Error   2016-01-26 10:13:29 TraceError sun2 
+16-09-10 16:10:47 FATAL <> - TraceFatal 1
+16-09-10 16:10:47 ERROR <> - TraceError sun
+16-09-10 16:10:47 WARN <> - TraceWarning
+16-09-10 16:10:47 INFO <> - TraceInfo
+16-09-10 16:10:47 FATAL <> - TraceFatal 2
+16-09-10 16:10:47 ERROR <> - TraceError sun2
 */  
   
 #ifndef _LOGGER_H_  
@@ -46,10 +46,10 @@ Error   2016-01-26 10:13:29 TraceError sun2
 namespace LOGGER  
 {  
     //日志级别的提示信息  
-    static const std::string strFatalPrefix = "Fatal\t";  
-    static const std::string strErrorPrefix = "Error\t";  
-    static const std::string strWarningPrefix = "Warning\t";  
-    static const std::string strInfoPrefix = "Info\t";  
+    static const std::string strFatalPrefix = "FATAL <> - ";  
+    static const std::string strErrorPrefix = "ERROR <> - ";  
+    static const std::string strWarningPrefix = "WARN <> - ";  
+    static const std::string strInfoPrefix = "INFO <> - ";  
   
     //日志级别枚举  
     typedef enum EnumLogLevel  
@@ -70,28 +70,32 @@ namespace LOGGER
         CLogger(EnumLogLevel nLogLevel = EnumLogLevel::LogLevel_Info, const std::string strLogPath = "", const std::string strLogName = "");  
         //析构函数  
         virtual ~CLogger();  
+
     public:  
         //写严重错误信息  
-        void TraceFatal(const char *lpcszFormat, ...);  
+        void Fatal(const char *lpcszFormat, ...);  
         //写错误信息  
-        void TraceError(const char *lpcszFormat, ...);  
+        void Error(const char *lpcszFormat, ...);  
         //写警告信息  
-        void TraceWarning(const char *lpcszFormat, ...);  
+        void Warn(const char *lpcszFormat, ...);  
         //写提示信息  
-        void TraceInfo(const char *lpcszFormat, ...);  
+        void Info(const char *lpcszFormat, ...);  
         //改变写日志级别  
         void ChangeLogLevel(EnumLogLevel nLevel);  
         //获取程序运行路径  
         static std::string GetAppPathA();  
         //格式化字符串  
-        static std::string FormatString(const char *lpcszFormat, ...);  
+        static std::string FormatString(const char *lpcszFormat, ...); 
+
     private:  
         //写文件操作  
         void Trace(const std::string &strLog);  
         //获取当前系统时间  
         std::string GetTime();  
         //文件全路径得到文件名  
-        const char *path_file(const char *path, char splitter);  
+        const char *path_file(const char *path, char splitter);
+
+
     private:  
         //写日志文件流  
         FILE * m_pFileStream;  

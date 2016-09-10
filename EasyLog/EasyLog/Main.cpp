@@ -21,29 +21,33 @@
 //}
 
 
-
 #include "Common/Logger.h" 
+
 using namespace LOGGER; 
-CLogger logger(LogLevel_Info,CLogger::GetAppPathA().append("log\\")); 
+CLogger logger(LogLevel_Info, CLogger::GetAppPathA().append("log\\")); 
+
+
+
+
 
 void main() 
 {
-	for (int i=0; i<1000; ++i)
+	for (int i=0; i<1; ++i)
 	{
-		logger.TraceFatal("TraceFatal %d", 1); 
-		logger.TraceError("TraceError %s", "sun"); 
-		logger.TraceWarning("TraceWarning"); 
-		logger.TraceInfo("TraceInfo"); 
+		logger.Fatal("TraceFatal %d", 1); 
+		logger.Error("TraceError %s", "sun"); 
+		logger.Warn("TraceWarning"); 
+		logger.Info("TraceInfo"); 
 
-		logger.ChangeLogLevel(LOGGER::LogLevel_Error); 
+		logger.ChangeLogLevel(LOGGER::LogLevel_Stop); 
 
-		logger.TraceFatal("TraceFatal %d", 2); 
-		logger.TraceError("TraceError %s", "sun2"); 
-		logger.TraceWarning("TraceWarning"); 
-		logger.TraceInfo("TraceInfo"); 
+		logger.Fatal("TraceFatal %d", 2); 
+		logger.Error("TraceError %s", "sun2"); 
+		logger.Warn("TraceWarning"); 
+		logger.Info("TraceInfo"); 
 
 	}
 
-
+	
 	getchar();
 } 
