@@ -5,22 +5,23 @@
 #include <time.h>  
 #include <stdarg.h>  
 #include <direct.h>  
-#include <vector>  
+#include <vector>
+#include <sstream>
 #include <Dbghelp.h>  
-#pragma comment(lib,"Dbghelp.lib")  
 
-using std::string;  
-using std::vector;  
+#pragma comment(lib,"Dbghelp.lib") 
+
+ 
+using std::vector;
 
 namespace LOGGER  
 {  
-	CLogger::CLogger(EnumLogLevel nLogLevel, const std::string strLogPath, const std::string strLogName)  
+	CLogger::CLogger(EnumLogLevel nLogLevel, const string strLogPath, const string strLogName)  
 		:m_nLogLevel(nLogLevel),  
 		m_strLogPath(strLogPath),  
 		m_strLogName(strLogName)  
 	{  
-		//初始化  
-		m_pFileStream = NULL;  
+ 
 		if (m_strLogPath.empty())  
 		{  
 			m_strLogPath = GetAppPathA();  
@@ -43,7 +44,7 @@ namespace LOGGER
 		m_strLogFilePath = m_strLogPath.append(m_strLogName);  
 
 		//以追加的方式打开文件流  
-		fopen_s(&m_pFileStream, m_strLogFilePath.c_str(), "a+");  
+		m_fout.open(m_strLogFilePath.c_str(), fstream::app, _SH_DENYNO);
 
 		InitializeCriticalSection(&m_cs);  
 	}  
@@ -56,20 +57,12 @@ namespace LOGGER
 		//释放临界区  
 		DeleteCriticalSection(&m_cs);  
 		//关闭文件流  
-		if (m_pFileStream)  
+		if (m_fout)  
 		{  
-			fclose(m_pFileStream);  
-			m_pFileStream = NULL;  
+			m_fout.close();  
 		}  
 	}  
 
-	//-------------------------------------------------------------------------------------------------------------------------
-
-	//文件全路径得到文件名  
-	const char *CLogger::path_file(const char *path, char splitter)  
-	{  
-		return strrchr(path, splitter) ? strrchr(path, splitter) + 1 : path;  
-	}  
 
 	//-------------------------------------------------------------------------------------------------------------------------
 
@@ -77,7 +70,7 @@ namespace LOGGER
 	void CLogger::Fatal(const char *lpcszFormat, ...)  
 	{  
 		//判断当前的写日志级别  
-		if (EnumLogLevel::LogLevel_Fatal > m_nLogLevel)  
+		if (LogLevel_Fatal > m_nLogLevel)  
 			return;  
 		string strResult;  
 		if (NULL != lpcszFormat)  
@@ -97,7 +90,7 @@ namespace LOGGER
 		{  
 			return;  
 		}  
-		string strLog = GetTime(); 
+		string strLog = GetTime();  //IntToStr(GetCurrentThreadId()) + " " + 
 		strLog.append(strFatalPrefix).append(strResult);  
 
 		//写日志文件  
@@ -110,7 +103,7 @@ namespace LOGGER
 	void CLogger::Error(const char *lpcszFormat, ...)  
 	{  
 		//判断当前的写日志级别  
-		if (EnumLogLevel::LogLevel_Error > m_nLogLevel)  
+		if (LogLevel_Error > m_nLogLevel)  
 			return;  
 		string strResult;  
 		if (NULL != lpcszFormat)  
@@ -118,7 +111,7 @@ namespace LOGGER
 			va_list marker = NULL;  
 			va_start(marker, lpcszFormat); //初始化变量参数  
 			size_t nLength = _vscprintf(lpcszFormat, marker) + 1; //获取格式化字符串长度  
-			std::vector<char> vBuffer(nLength, '\0'); //创建用于存储格式化字符串的字符数组  
+			vector<char> vBuffer(nLength, '\0'); //创建用于存储格式化字符串的字符数组  
 			int nWritten = _vsnprintf_s(&vBuffer[0], vBuffer.size(), nLength, lpcszFormat, marker);  
 			if (nWritten > 0)  
 			{  
@@ -143,7 +136,7 @@ namespace LOGGER
 	void CLogger::Warn(const char *lpcszFormat, ...)  
 	{  
 		//判断当前的写日志级别  
-		if (EnumLogLevel::LogLevel_Warning > m_nLogLevel)  
+		if (LogLevel_Warning > m_nLogLevel)  
 			return;  
 		string strResult;  
 		if (NULL != lpcszFormat)  
@@ -151,7 +144,7 @@ namespace LOGGER
 			va_list marker = NULL;  
 			va_start(marker, lpcszFormat); //初始化变量参数  
 			size_t nLength = _vscprintf(lpcszFormat, marker) + 1; //获取格式化字符串长度  
-			std::vector<char> vBuffer(nLength, '\0'); //创建用于存储格式化字符串的字符数组  
+			vector<char> vBuffer(nLength, '\0'); //创建用于存储格式化字符串的字符数组  
 			int nWritten = _vsnprintf_s(&vBuffer[0], vBuffer.size(), nLength, lpcszFormat, marker);  
 			if (nWritten > 0)  
 			{  
@@ -176,7 +169,7 @@ namespace LOGGER
 	void CLogger::Info(const char *lpcszFormat, ...)  
 	{  
 		//判断当前的写日志级别  
-		if (EnumLogLevel::LogLevel_Info > m_nLogLevel)  
+		if (LogLevel_Info > m_nLogLevel)  
 			return;  
 		string strResult;  
 		if (NULL != lpcszFormat)  
@@ -184,7 +177,7 @@ namespace LOGGER
 			va_list marker = NULL;  
 			va_start(marker, lpcszFormat); //初始化变量参数  
 			size_t nLength = _vscprintf(lpcszFormat, marker) + 1; //获取格式化字符串长度  
-			std::vector<char> vBuffer(nLength, '\0'); //创建用于存储格式化字符串的字符数组  
+			vector<char> vBuffer(nLength, '\0'); //创建用于存储格式化字符串的字符数组  
 			int nWritten = _vsnprintf_s(&vBuffer[0], vBuffer.size(), nLength, lpcszFormat, marker);  
 			if (nWritten > 0)  
 			{  
@@ -236,17 +229,16 @@ namespace LOGGER
 			//进入临界区  
 			EnterCriticalSection(&m_cs);  
 			//若文件流没有打开，则重新打开  
-			if (NULL == m_pFileStream)  
+			if (!m_fout.is_open())  
 			{  
-				fopen_s(&m_pFileStream, m_strLogFilePath.c_str(), "a+");  
-				if (!m_pFileStream)  
+				m_fout.open(m_strLogFilePath.c_str(), fstream::app, _SH_DENYNO);  
+				if (!m_fout)  
 				{  
 					return;  
 				}  
 			}  
 			//写日志信息到文件流  
-			fprintf(m_pFileStream, "%s\n", strLog.c_str());  
-			fflush(m_pFileStream);  
+			m_fout << strLog.c_str() << std::endl;  
 			//离开临界区  
 			LeaveCriticalSection(&m_cs);  
 		}  
@@ -280,7 +272,7 @@ namespace LOGGER
 			va_list marker = NULL;  
 			va_start(marker, lpcszFormat); //初始化变量参数  
 			size_t nLength = _vscprintf(lpcszFormat, marker) + 1; //获取格式化字符串长度  
-			std::vector<char> vBuffer(nLength, '\0'); //创建用于存储格式化字符串的字符数组  
+			vector<char> vBuffer(nLength, '\0'); //创建用于存储格式化字符串的字符数组  
 			int nWritten = _vsnprintf_s(&vBuffer[0], vBuffer.size(), nLength, lpcszFormat, marker);  
 			if (nWritten > 0)  
 			{  
@@ -292,6 +284,24 @@ namespace LOGGER
 	} 
 
 	//-------------------------------------------------------------------------------------------------------------------------
+	string CLogger::IntToStr(int val)
+	{
+		string tmp;
+		std::stringstream ss;
+		ss << val;
+		ss >> tmp;
+		return tmp;
+	}
 
+
+	//-------------------------------------------------------------------------------------------------------------------------
+	//返回完整文件名中的文件名称 (带扩展名)，如"mytest.doc"
+	string CLogger::ExtractFileName(const char *szFilePath)
+	{
+		char szDrive[MAX_PATH] = { 0 }, szDir[MAX_PATH] = { 0 }, szFileName[MAX_PATH] = { 0 }, szExt[MAX_PATH] = { 0 }; 
+		_splitpath_s(szFilePath, szDrive, szDir, szFileName, szExt);
+		string fileName = string(szFileName) + szExt;
+		return fileName;
+	}
 	
 }//end of namespace  LOGGER

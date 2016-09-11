@@ -42,14 +42,20 @@ logger.Info("TraceInfo");
 #include <Windows.h>  
 #include <stdio.h>  
 #include <string>  
+#include <fstream>
+
+
+
+using std::string; 
+using std::fstream;
   
 namespace LOGGER  
 {  
     //日志级别的提示信息  
-    static const std::string strFatalPrefix = "FATAL <> - ";  
-    static const std::string strErrorPrefix = "ERROR <> - ";  
-    static const std::string strWarningPrefix = "WARN <> - ";  
-    static const std::string strInfoPrefix = "INFO <> - ";  
+    static const string strFatalPrefix = "FATAL <> - ";  
+    static const string strErrorPrefix = "ERROR <> - ";  
+    static const string strWarningPrefix = "WARN <> - ";  
+    static const string strInfoPrefix = "INFO <> - ";  
   
     //日志级别枚举  
     typedef enum EnumLogLevel  
@@ -67,7 +73,7 @@ namespace LOGGER
         //nLogLevel：日志记录的等级，可空  
         //strLogPath：日志目录，可空  
         //strLogName：日志名称，可空  
-        CLogger(EnumLogLevel nLogLevel = EnumLogLevel::LogLevel_Info, const std::string strLogPath = "", const std::string strLogName = "");  
+        CLogger(EnumLogLevel nLogLevel = LogLevel_Info, const string strLogPath = "", const string strLogName = "");  
         //析构函数  
         virtual ~CLogger();  
 
@@ -83,30 +89,31 @@ namespace LOGGER
         //改变写日志级别  
         void ChangeLogLevel(EnumLogLevel nLevel);  
         //获取程序运行路径  
-        static std::string GetAppPathA();  
+        static string GetAppPathA();  
         //格式化字符串  
-        static std::string FormatString(const char *lpcszFormat, ...); 
+        static string FormatString(const char *lpcszFormat, ...); 
+		static string IntToStr(int val);
+		//返回完整文件名中的文件名称 (带扩展名)，如"mytest.doc"
+		static string ExtractFileName(const char *szFilePath); 
 
     private:  
         //写文件操作  
-        void Trace(const std::string &strLog);  
+        void Trace(const string &strLog);  
         //获取当前系统时间  
         std::string GetTime();  
-        //文件全路径得到文件名  
-        const char *path_file(const char *path, char splitter);
 
 
     private:  
         //写日志文件流  
-        FILE * m_pFileStream;  
+		fstream m_fout; 
         //写日志级别  
         EnumLogLevel m_nLogLevel;  
         //日志目录  
-        std::string m_strLogPath;  
+        string m_strLogPath;  
         //日志的名称  
-        std::string m_strLogName;  
+        string m_strLogName;  
         //日志文件全路径  
-        std::string m_strLogFilePath;  
+        string m_strLogFilePath;  
         //线程同步的临界区变量  
         CRITICAL_SECTION m_cs;  
     };  
