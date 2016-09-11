@@ -1,41 +1,10 @@
 //logger.h  
-/* 
+
 //类名：CLogger 
 //功能介绍：Win平台日志记录功能，多线程安全，支持写日志级别的设置，日志格式包含日志等级，日志时间，文件名，行号信息 
 //作者：sunflover 2016-1-15 14:31:27 
- 
-//使用方法： 
-1：将logger.h，logger.cpp添加到项目中 
-2：设置logger.cpp的预编译头选项为“不使用预编译头” 
-3：使用代码示例： 
-#include "Logger.h" 
-using namespace LOGGER; 
-CLogger logger(LogLevel_Info,CLogger::GetAppPathA().append("log\\")); 
- 
-void main() 
-{ 
-logger.Fatal("TraceFatal %d", 1); 
-logger.Error("TraceError %s", "sun"); 
-logger.Warn("TraceWarning"); 
-logger.Info("TraceInfo"); 
- 
-logger.ChangeLogLevel(LOGGER::LogLevel_Error); 
- 
-logger.Fatal("TraceFatal %d", 2); 
-logger.Error("TraceError %s", "sun2"); 
-logger.Warn("TraceWarning"); 
-logger.Info("TraceInfo"); 
-} 
- 
- 
-执行结果：20160126_101329.log文件内容如下 
-16-09-10 16:10:47 FATAL <> - TraceFatal 1
-16-09-10 16:10:47 ERROR <> - TraceError sun
-16-09-10 16:10:47 WARN <> - TraceWarning
-16-09-10 16:10:47 INFO <> - TraceInfo
-16-09-10 16:10:47 FATAL <> - TraceFatal 2
-16-09-10 16:10:47 ERROR <> - TraceError sun2
-*/  
+//修正者:andy 2016-9-11 17:07 
+
   
 #ifndef _LOGGER_H_  
 #define _LOGGER_H_  
@@ -61,10 +30,10 @@ namespace LOGGER
     typedef enum EnumLogLevel  
     {  
         LogLevel_Stop = 0,  //什么都不记录  
-        LogLevel_Fatal,     //只记录严重错误  
-        LogLevel_Error,     //记录严重错误，普通错误  
-        LogLevel_Warning,   //记录严重错误，普通错误，警告  
-        LogLevel_Info       //记录严重错误，普通错误，警告，提示信息(也就是全部记录)  
+        LogLevel_Fatal =1,     //只记录严重错误  
+        LogLevel_Error = 2,     //记录严重错误，普通错误  
+        LogLevel_Warning = 3,   //记录严重错误，普通错误，警告  
+        LogLevel_Info = 4,       //记录严重错误，普通错误，警告，提示信息(也就是全部记录)  
     };  
   
     class CLogger  

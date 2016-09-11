@@ -2,33 +2,13 @@
 //
 
 #include "stdafx.h"
-
-//#include "Common/Logfile.h"
-//int _tmain(int argc, _TCHAR* argv[])
-//{
-//	LogFileEx log("../Debug/Logfiles");
-//
-//	for (int i=0; i<1000; ++i)
-//		log.Log("4646456015555555555555555555555555555555555555");
-//
-//	printf("已完成");
-//
-//
-//
-//
-//	getchar();
-//	return 0;
-//}
-
-
 #include "Common/Logger.h" 
 #include <iostream>
+#include "inifiles.h"
 
-
-
-
+using namespace INIFILE;
 using namespace LOGGER; 
-CLogger logger(LogLevel_Info, CLogger::GetAppPathA().append("log\\")); 
+CLogger g_log(LogLevel_Info, CLogger::GetAppPathA().append("log\\")); 
 
 
 
@@ -41,9 +21,27 @@ DWORD WINAPI Fun(LPVOID lpParamter)
 {
 	while(1) 
 	{ 
-		logger.Fatal("Fun thread display[%s:%d]", CLogger::ExtractFileName(__FILE__).c_str(), __LINE__) ;
+		g_log.Fatal("Fun thread display[%s:%d]", CLogger::ExtractFileName(__FILE__).c_str(), __LINE__) ;
 		Sleep(5000);
 	}
+}
+
+void TestIni(void)
+{
+
+	TIniFile *iniSet = new TIniFile("..\\Debug\\set.ini");
+	iniSet->WriteFloat("CodeTool", "float", 13.56);
+	std::cout << iniSet->ReadFloat("CodeTool", "float", 44.55) << std::endl;
+
+
+	iniSet->WriteBool("CodeTool", "bool", true);
+	std::cout << iniSet->ReadBool("CodeTool", "bool", false) << std::endl;
+
+	iniSet->WriteInteger("CodeTool", "LogLevel", LOGGER::LogLevel_Warning);
+	LOGGER::EnumLogLevel logLevel = (LOGGER::EnumLogLevel)iniSet->ReadInteger("CodeTool", "LogLevel", LOGGER::LogLevel_Info);
+	std::cout << "log level:" << logLevel << std::endl;
+	g_log.ChangeLogLevel(logLevel);
+
 }
 
 
@@ -53,28 +51,27 @@ void main()
 	HANDLE hThread = CreateThread(NULL, 0, Fun, NULL, 0, NULL);
 	CloseHandle(hThread);
 
-
+	TestIni();
+	
 	while (1)
 	{
-		logger.Fatal("TraceFatal [%s:%d]", CLogger::ExtractFileName(__FILE__).c_str(), __LINE__); 
-		logger.Error("TraceError %s", "sun"); 
+		g_log.Fatal("TraceFatal [%s:%d]", CLogger::ExtractFileName(__FILE__).c_str(), __LINE__); 
+		g_log.Error("TraceError %s", "sun"); 
 		string msg("string messages");
-		logger.Warn("TraceWarning %s", msg.c_str()); 
-		logger.Info("TraceInfo"); 
+		g_log.Warn("TraceWarning %s", msg.c_str()); 
+		g_log.Info("TraceInfo"); 
 
-		//logger.ChangeLogLevel(LOGGER::LogLevel_Stop); 
-
-		logger.Fatal("TraceFatal %d", 2); 
-		logger.Error("TraceError %f", 441.343567f); 
-		logger.Warn("TraceWarning"); 
-		logger.Info("TraceInfo"); 
+		g_log.Fatal("TraceFatal %d", 2); 
+		g_log.Error("TraceError %f", 441.343567f); 
+		g_log.Warn("TraceWarning"); 
+		g_log.Info("TraceInfo"); 
 		Sleep(1000);
 	}
 
 
 
 
-	printf("已完成");
+	std::cout << "已完成" << std::endl;
 	getchar();
 } 
 
